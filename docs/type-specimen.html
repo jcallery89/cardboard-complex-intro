@@ -1,0 +1,182 @@
+<title>Cardboard Complex Type Trials</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Oswald:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&family=Fraunces:opsz,wght,SOFT@9..144,400;9..144,700;9..144,900,100&family=Barlow+Condensed:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
+<style>
+  :root {
+    --ground:#1B1512; --panel:#26201B; --line:#3E352E;
+    --text:#F3ECD8; --muted:#B5A996; --dim:#7E7264;
+    --brick:#8F2C2C; --tan:#C89B62; --gold:#C9A227; --gold-hi:#E7C55A; --navy:#14213D;
+    --ui:"DM Sans", system-ui, sans-serif;
+  }
+  /* one visual world on purpose: the page lives inside the shop, so it stays dark in every viewer theme */
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ground); color:var(--text); font-family:var(--ui); line-height:1.5; }
+  a { color:var(--gold-hi); }
+
+  header { padding:56px 24px 28px; max-width:1180px; margin:0 auto; }
+  header .eyebrow { font:600 12px/1 var(--ui); letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin:0 0 14px; }
+  header h1 { font:500 clamp(26px,3.4vw,40px)/1.15 var(--ui); margin:0 0 12px; max-width:22ch; text-wrap:balance; letter-spacing:-.01em; }
+  header p { color:var(--muted); max-width:62ch; margin:0; font-size:16px; }
+
+  .how { max-width:1180px; margin:0 auto; padding:0 24px 34px; display:flex; gap:28px; flex-wrap:wrap; color:var(--muted); font-size:14px; }
+  .how span b { color:var(--text); font-weight:600; }
+
+  /* one storefront per system */
+  .system { border-top:1px solid var(--line); }
+  .system .inner { max-width:1180px; margin:0 auto; padding:44px 24px 56px; display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:40px; }
+  @media (max-width:900px) { .system .inner { grid-template-columns:1fr; } }
+
+  .tag { display:flex; align-items:baseline; gap:14px; margin:0 0 26px; }
+  .tag .letter { font:600 13px/1 var(--ui); color:var(--ground); background:var(--gold); padding:6px 9px; letter-spacing:.08em; }
+  .tag h2 { font:500 20px/1.2 var(--ui); margin:0; }
+  .tag p { margin:0; color:var(--muted); font-size:14px; }
+
+  .mark { background:var(--panel); border:1px solid var(--line); padding:34px 24px 30px; text-align:center; margin:0 0 26px; }
+  .mark .cb { display:block; color:var(--tan); line-height:.95; letter-spacing:-.01em; }
+  .mark .cx { display:block; color:var(--text); line-height:1.05; margin-top:6px; }
+  .mark .tl { display:block; color:var(--gold); text-transform:uppercase; margin-top:10px; }
+
+  .hero h3 { margin:0 0 10px; line-height:1.05; text-wrap:balance; letter-spacing:-.01em; }
+  .hero .sub { margin:0 0 22px; color:var(--muted); max-width:52ch; font-size:17px; }
+
+  .signs { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 24px; }
+  .sign { border:1px solid var(--tan); background:rgba(27,21,18,.85); color:var(--text); padding:8px 14px 7px; text-transform:uppercase; position:relative; }
+  .sign.on { background:rgba(201,162,39,.22); border-color:var(--gold-hi); }
+  .sign.vault { color:var(--gold-hi); border-color:var(--gold); background:#101a2b; }
+
+  .body { max-width:62ch; margin:0 0 22px; color:var(--text); }
+  .body p { margin:0 0 12px; }
+  .cta { display:inline-flex; align-items:center; gap:12px; }
+  .btn { border:1px solid var(--gold); background:var(--gold); color:var(--ground); padding:11px 18px; text-transform:uppercase; text-decoration:none; }
+  .btn.ghost { background:none; color:var(--text); border-color:var(--line); }
+
+  aside { align-self:start; position:sticky; top:20px; border:1px solid var(--line); padding:20px 20px 8px; font-size:14px; }
+  aside h4 { margin:0 0 12px; font:600 12px/1 var(--ui); letter-spacing:.16em; text-transform:uppercase; color:var(--gold); }
+  aside dl { margin:0; display:grid; grid-template-columns:auto 1fr; gap:8px 14px; }
+  aside dt { color:var(--dim); }
+  aside dd { margin:0; }
+  aside dd small { display:block; color:var(--muted); }
+  aside .verdict { border-top:1px solid var(--line); margin-top:16px; padding-top:14px; color:var(--muted); }
+
+  /* ---- system A: signage ---- */
+  .A .cb { font:400 clamp(56px,9vw,112px)/1 "Alfa Slab One", Rockwell, serif; }
+  .A .cx { font:500 clamp(30px,4.6vw,58px)/1 "Lora", Georgia, serif; }
+  .A .tl { font:500 clamp(12px,1.4vw,18px)/1 "Oswald", Impact, sans-serif; letter-spacing:.22em; }
+  .A .hero h3 { font:400 clamp(30px,4.4vw,54px)/1.08 "Alfa Slab One", Rockwell, serif; }
+  .A .sub, .A .body { font-family:"Lora", Georgia, serif; }
+  .A .sign, .A .btn { font:500 14px/1 "Oswald", Impact, sans-serif; letter-spacing:.1em; }
+
+  /* ---- system B: cooper era ---- */
+  .B .cb { font:900 clamp(56px,9vw,116px)/1 "Fraunces", Georgia, serif; font-variation-settings:"SOFT" 100, "opsz" 144; }
+  .B .cx { font:500 clamp(30px,4.6vw,60px)/1 "Source Serif 4", Georgia, serif; }
+  .B .tl { font:600 clamp(13px,1.5vw,20px)/1 "Barlow Condensed", "Arial Narrow", sans-serif; letter-spacing:.24em; }
+  .B .hero h3 { font:900 clamp(32px,4.6vw,58px)/1.05 "Fraunces", Georgia, serif; font-variation-settings:"SOFT" 100, "opsz" 144; }
+  .B .sub, .B .body { font-family:"Source Serif 4", Georgia, serif; }
+  .B .sign, .B .btn { font:600 15px/1 "Barlow Condensed", "Arial Narrow", sans-serif; letter-spacing:.12em; }
+
+  /* ---- system C: modern hobby ---- */
+  .C .cb { font:800 clamp(54px,8.6vw,108px)/1 "Bricolage Grotesque", "Helvetica Neue", sans-serif; letter-spacing:-.03em; }
+  .C .cx { font:300 clamp(30px,4.6vw,58px)/1 "Bricolage Grotesque", "Helvetica Neue", sans-serif; }
+  .C .tl { font:600 clamp(11px,1.3vw,16px)/1 "DM Sans", system-ui, sans-serif; letter-spacing:.3em; }
+  .C .hero h3 { font:800 clamp(30px,4.4vw,54px)/1.05 "Bricolage Grotesque", "Helvetica Neue", sans-serif; letter-spacing:-.02em; }
+  .C .sub, .C .body { font-family:"DM Sans", system-ui, sans-serif; }
+  .C .sign, .C .btn { font:600 13px/1 "DM Sans", system-ui, sans-serif; letter-spacing:.14em; }
+
+  footer { border-top:1px solid var(--line); padding:28px 24px 56px; max-width:1180px; margin:0 auto; color:var(--dim); font-size:13px; }
+</style>
+
+<header>
+  <p class="eyebrow">Cardboard Complex · type trials</p>
+  <h1>Three ways the shop could talk, set on the real copy.</h1>
+  <p>Each panel is the same storefront: the wordmark, the hero line from the landing page, the station signs from the room, a paragraph and a button. Read them like a customer walking in, not like a font menu. Pick the one whose voice you'd put on the awning.</p>
+</header>
+<div class="how">
+  <span><b>Wordmark</b> is set live in the display face; the outlined SVG versions are in <code>assets/logo/</code>.</span>
+  <span><b>Colors</b> are the site palette and never change between panels, so only the type is on trial.</span>
+</div>
+
+<!-- A -->
+<section class="system A">
+  <div class="inner">
+    <div>
+      <div class="tag"><span class="letter">A</span><h2>Signage</h2><p>Painted warehouse lettering. Closest to what the site runs today.</p></div>
+      <div class="mark"><span class="cb">CardBoard</span><span class="cx">Complex</span><span class="tl">Trading card collectibles</span></div>
+      <div class="hero">
+        <h3>Every card shop's story starts the same way. Someone opens the door.</h3>
+        <p class="sub">CardBoard Complex is the platform that connects every shop, show, and collector in the hobby.</p>
+      </div>
+      <div class="signs"><span class="sign on">The wall</span><span class="sign">The screen</span><span class="sign">The counter</span><span class="sign">Your phone</span><span class="sign vault">Collectors only</span></div>
+      <div class="body">
+        <p>Set up your shop once. Bring it to every show. Update your inventory in one place and it's live everywhere: on your shelf, on the table at the show, and on the collector's phone who has been hunting that 1989 Griffey rookie for a year.</p>
+      </div>
+      <div class="cta"><a class="btn" href="#">Join the waitlist</a><a class="btn ghost" href="#">Back to the floor</a></div>
+    </div>
+    <aside>
+      <h4>Fonts in use</h4>
+      <dl>
+        <dt>Display</dt><dd>Alfa Slab One<small>headlines, wordmark</small></dd>
+        <dt>Labels</dt><dd>Oswald 500<small>signs, buttons, eyebrows</small></dd>
+        <dt>Body</dt><dd>Lora<small>paragraphs, captions</small></dd>
+      </dl>
+      <p class="verdict">Loud and confident. Reads as a sign from across the street. The slab's thin hairlines on the B fight the corrugation motif a little, and it shouts on a phone screen.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- B -->
+<section class="system B">
+  <div class="inner">
+    <div>
+      <div class="tag"><span class="letter">B</span><h2>Cooper era</h2><p>Soft, chunky letterforms. Nearest to the logo Steve already has.</p></div>
+      <div class="mark"><span class="cb">CardBoard</span><span class="cx">Complex</span><span class="tl">Trading card collectibles</span></div>
+      <div class="hero">
+        <h3>Every card shop's story starts the same way. Someone opens the door.</h3>
+        <p class="sub">CardBoard Complex is the platform that connects every shop, show, and collector in the hobby.</p>
+      </div>
+      <div class="signs"><span class="sign on">The wall</span><span class="sign">The screen</span><span class="sign">The counter</span><span class="sign">Your phone</span><span class="sign vault">Collectors only</span></div>
+      <div class="body">
+        <p>Set up your shop once. Bring it to every show. Update your inventory in one place and it's live everywhere: on your shelf, on the table at the show, and on the collector's phone who has been hunting that 1989 Griffey rookie for a year.</p>
+      </div>
+      <div class="cta"><a class="btn" href="#">Join the waitlist</a><a class="btn ghost" href="#">Back to the floor</a></div>
+    </div>
+    <aside>
+      <h4>Fonts in use</h4>
+      <dl>
+        <dt>Display</dt><dd>Fraunces 900 Soft<small>headlines, wordmark</small></dd>
+        <dt>Labels</dt><dd>Barlow Condensed 600<small>signs, buttons, eyebrows</small></dd>
+        <dt>Body</dt><dd>Source Serif 4<small>paragraphs, captions</small></dd>
+      </dl>
+      <p class="verdict">Warm and a little nostalgic, like the 70s wax pack era the hobby grew up on. The rounded terminals match the 3D logo, so the flat and 3D marks read as one brand. Our pick to beat.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- C -->
+<section class="system C">
+  <div class="inner">
+    <div>
+      <div class="tag"><span class="letter">C</span><h2>Modern hobby</h2><p>Quieter and app-like. What the product screens would use.</p></div>
+      <div class="mark"><span class="cb">CardBoard</span><span class="cx">Complex</span><span class="tl">Trading card collectibles</span></div>
+      <div class="hero">
+        <h3>Every card shop's story starts the same way. Someone opens the door.</h3>
+        <p class="sub">CardBoard Complex is the platform that connects every shop, show, and collector in the hobby.</p>
+      </div>
+      <div class="signs"><span class="sign on">The wall</span><span class="sign">The screen</span><span class="sign">The counter</span><span class="sign">Your phone</span><span class="sign vault">Collectors only</span></div>
+      <div class="body">
+        <p>Set up your shop once. Bring it to every show. Update your inventory in one place and it's live everywhere: on your shelf, on the table at the show, and on the collector's phone who has been hunting that 1989 Griffey rookie for a year.</p>
+      </div>
+      <div class="cta"><a class="btn" href="#">Join the waitlist</a><a class="btn ghost" href="#">Back to the floor</a></div>
+    </div>
+    <aside>
+      <h4>Fonts in use</h4>
+      <dl>
+        <dt>Display</dt><dd>Bricolage Grotesque 800<small>headlines, wordmark</small></dd>
+        <dt>Labels</dt><dd>DM Sans 600<small>signs, buttons, eyebrows</small></dd>
+        <dt>Body</dt><dd>DM Sans<small>paragraphs, UI text</small></dd>
+      </dl>
+      <p class="verdict">Cleanest on a phone and the easiest to carry into the app itself. Loses the shop-sign character, so the room's signage would have to do that work on its own. A strong choice for product UI even if A or B wins the brand.</p>
+    </aside>
+  </div>
+</section>
+
+<footer>All three load from Google Fonts, so any of them drops into the intro and the landing page with a one-line change. A mixed answer is fine too: B for the brand and marketing, C inside the product.</footer>

@@ -1,0 +1,14 @@
+# dependencies and scratch
+node_modules/
+video/node_modules/
+video/frames/
+*.log
+.DS_Store
+Thumbs.db
+
+# never commit the purchased mockup packs or other archives; keep them beside the repo, not in it
+*.zip
+*.psd
+*.psb
+
+# video/out/ IS tracked: the MP4 and WebM renders are deliverables

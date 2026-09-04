@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cardboard Complex intros</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Oswald:wght@400;500&family=Lora&display=swap">
+<style>
+  body { margin:0; background:#1B1512; color:#F3ECD8; font-family:"Lora",Georgia,serif; padding:48px 24px; }
+  main { max-width:640px; margin:0 auto; }
+  h1 { font-family:"Playfair Display",serif; font-size:34px; margin:0 0 4px; }
+  p.lede { color:#B5A996; margin:0 0 32px; }
+  a.intro { display:block; padding:18px 20px; border:1px solid #3E352E; border-left:3px solid #C9A227; color:inherit; text-decoration:none; margin-bottom:12px; }
+  a.intro:hover { background:#26201B; }
+  a.intro b { font-family:"Oswald",sans-serif; font-weight:500; letter-spacing:.04em; display:block; margin-bottom:4px; }
+  a.intro span { color:#B5A996; font-size:15px; }
+  small { color:#7E7264; display:block; margin-top:32px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Cardboard Complex intros</h1>
+  <p class="lede">Each link is one take on the opener. Add a new entry here every time an intro is created.</p>
+
+  <a class="intro" href="01-door-reveal.html">
+    <b>01 Door reveal</b>
+    <span>Roll-up door opens, camera pushes through into the room. Room navigation prototype with five stations. Single plane, no parallax yet.</span>
+  </a>
+
+  <a class="intro" href="02-walk-in-reveal.html">
+    <b>02 Walk-in and door reveal</b>
+    <span>Starts across the street on Steve's establishing frame, dollies in, dissolves to the roll-up plate, then the same door reveal as 01. This is the timeline the video is rendered from (add <code>?render</code> for frame capture).</span>
+  </a>
+
+  <a class="intro" href="03-video-intro.html">
+    <b>03 Video walk-in</b>
+    <span>Plays the rendered MP4 of 02 (landscape or portrait, chosen by screen orientation) and hands off to the same room. Needs <code>video/out/</code> to exist; run <code>scripts/render-video.js</code> after changing 02.</span>
+  </a>
+
+  <small>Add <code>?skip</code> to any intro URL to jump straight to the room.</small>
+</main>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cardboard Complex, intro 02: walk-in and door reveal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Oswald:wght@400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap">
+<style>
+  :root {
+    /* palette from the reference page */
+    --ground:#1B1512; --panel:#26201B; --line:#3E352E;
+    --text:#F3ECD8; --muted:#B5A996; --dim:#7E7264;
+    --brick:#8F2C2C; --tan:#C89B62; --gold:#C9A227; --gold-hi:#E7C55A; --navy:#14213D;
+    --display:"Playfair Display",Georgia,serif; --label:"Oswald",sans-serif; --body:"Lora",Georgia,serif;
+
+    /* exterior plate geometry, scene units are the plate's pixels */
+    --plate-w:1500; --plate-h:636;
+    /* door opening on the plate, tune by eye */
+    --door-l:0.386; --door-r:0.621; --door-t:0.376; --door-b:0.843;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--ground); color:var(--text); font-family:var(--body); overflow:hidden; }
+  button { font:inherit; cursor:pointer; }
+
+  /* ---------- stage ---------- */
+  #stage { position:fixed; inset:0; overflow:hidden; background:var(--ground); }
+
+  /* the exterior scene, laid out in plate pixels and scaled to cover the viewport */
+  #scene { position:absolute; left:50%; top:50%; width:calc(var(--plate-w) * 1px); height:calc(var(--plate-h) * 1px); margin-left:calc(var(--plate-w) * -0.5px); margin-top:calc(var(--plate-h) * -0.5px); will-change:transform; }
+  #scene > * { position:absolute; }
+  #exterior { inset:0; width:100%; height:100%; object-fit:fill; display:block; }
+  /* the street frame sits above the plate, registered on the door, and dissolves away during the push */
+  #street { width:2400px; height:1018px; left:-445px; top:-411px; display:block; z-index:2; }
+
+  /* interior sits behind the door, clipped to the opening */
+  #interior-clip {
+    inset:0;
+    clip-path: inset(calc(var(--door-t) * 100%) calc((1 - var(--door-r)) * 100%) calc((1 - var(--door-b)) * 100%) calc(var(--door-l) * 100%));
+  }
+  #interior-clip img { position:absolute; display:block; }
+
+  /* the roll-up door: a corrugated slab that shrinks upward */
+  #door {
+    left:calc(var(--door-l) * 100%); top:calc(var(--door-t) * 100%);
+    width:calc((var(--door-r) - var(--door-l)) * 100%); height:calc((var(--door-b) - var(--door-t)) * 100%);
+    transform-origin:top center; overflow:hidden;
+    background:
+      repeating-linear-gradient(180deg, #3a3a3d 0 6px, #232326 6px 10px, #45454a 10px 12px, #2b2b2e 12px 16px),
+      #2f2f32;
+    box-shadow: inset 0 -6px 12px rgba(0,0,0,.6), 0 6px 14px rgba(0,0,0,.55);
+  }
+  #door::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,.35)); }
+  /* warm light spilling out under the door onto the sidewalk */
+  #spill {
+    left:calc(var(--door-l) * 100% - 20px); top:calc(var(--door-b) * 100% - 6px);
+    width:calc((var(--door-r) - var(--door-l)) * 100% + 40px); height:70px;
+    background:radial-gradient(60% 100% at 50% 0%, rgba(231,197,90,.55), rgba(231,197,90,0) 70%);
+    opacity:0; pointer-events:none; mix-blend-mode:screen;
+  }
+
+  /* ---------- room ---------- */
+  #room { position:absolute; inset:0; opacity:0; visibility:hidden; }
+  #room-cam { position:absolute; inset:0; will-change:transform; }
+  /* the room is laid out in interior render pixels and cover-fitted to the viewport by JS, so stations stay pinned to the picture on any screen */
+  #room-img { position:absolute; left:0; top:0; width:2400px; height:1018px; transform-origin:0 0; }
+  #room-img img { position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .station {
+    position:absolute; transform:translate(-50%,-50%) scale(var(--ui, 1)); transform-origin:50% 100%;
+    background:rgba(27,21,18,.72); color:var(--text); border:1px solid var(--tan);
+    font-family:var(--label); font-weight:500; font-size:14px; letter-spacing:.04em; padding:6px 12px;
+    backdrop-filter:blur(3px); opacity:0; transition:background .2s, border-color .2s;
+  }
+  .station::before { content:""; position:absolute; left:50%; top:-16px; width:1px; height:14px; background:var(--tan); }
+  .station:hover, .station:focus-visible { background:rgba(201,162,39,.25); border-color:var(--gold-hi); outline:none; }
+  #room.focused .station { pointer-events:none; }
+
+  #caption {
+    position:absolute; left:24px; right:24px; bottom:28px; max-width:520px;
+    background:rgba(27,21,18,.86); border-left:3px solid var(--gold); padding:18px 22px;
+    opacity:0; transform:translateY(12px); pointer-events:none;
+  }
+  #caption h2 { font-family:var(--display); font-size:clamp(22px,3vw,34px); margin:0 0 6px; line-height:1.1; }
+  #caption p { margin:0 0 12px; color:var(--muted); font-size:15px; line-height:1.5; }
+  #caption button { background:none; border:1px solid var(--line); color:var(--text); font-family:var(--label); padding:6px 12px; }
+
+  /* ---------- chrome ---------- */
+  #skip { position:fixed; right:18px; top:18px; z-index:5; background:rgba(27,21,18,.6); color:var(--muted); border:1px solid var(--line); font-family:var(--label); font-size:13px; letter-spacing:.06em; padding:6px 12px; }
+  #skip:hover { color:var(--text); border-color:var(--tan); }
+  #replay { position:fixed; left:18px; top:18px; z-index:5; background:none; color:var(--dim); border:0; font-family:var(--label); font-size:13px; letter-spacing:.06em; opacity:0; }
+  #vignette { position:fixed; inset:0; pointer-events:none; background:radial-gradient(120% 90% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,.55)); z-index:3; }
+
+  @media (max-width:600px) {
+    .station { font-size:12px; padding:5px 9px; }
+    #caption { left:12px; right:12px; bottom:16px; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="scene">
+    <img id="exterior" src="../assets/img/exterior-door-closed.jpg" alt="">
+    <div id="interior-clip"><img id="interior-far" src="../assets/img/interior-wide.jpg" alt=""></div>
+    <div id="spill"></div>
+    <div id="door"></div>
+    <img id="street" src="../assets/source/walk-in/hero-street-2400.webp" alt="">
+  </div>
+
+  <div id="room">
+    <div id="room-cam"><div id="room-img">
+      <img id="interior" src="../assets/img/interior-wide.jpg" alt="Inside the Cardboard Complex shop">
+      <!-- positions are fractions of the interior render, not the viewport -->
+      <button class="station" data-station="shelves" style="left:21%; top:40%">The shelves</button>
+      <button class="station" data-station="tv"      style="left:50%; top:36%">The screen</button>
+      <button class="station" data-station="phone"   style="left:76.5%; top:50%">Your phone</button>
+      <button class="station" data-station="counter" style="left:71%; top:57%">The counter</button>
+      <button class="station" data-station="vault"   style="left:87.5%; top:44%">Collectors only</button>
+    </div></div>
+    <div id="caption"><h2></h2><p></p><button id="back">Back to the room</button></div>
+  </div>
+</div>
+<div id="vignette"></div>
+<button id="skip">Skip intro</button>
+<button id="replay">Replay intro</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(function () {
+  const css = getComputedStyle(document.documentElement);
+  const num = v => parseFloat(css.getPropertyValue(v));
+  const PW = num('--plate-w'), PH = num('--plate-h');
+  const DL = num('--door-l'), DR = num('--door-r'), DT = num('--door-t'), DB = num('--door-b');
+
+  const stage = document.getElementById('stage');
+  const scene = document.getElementById('scene');
+  const clip = document.getElementById('interior-clip');
+  const far = document.getElementById('interior-far');
+  const door = document.getElementById('door');
+  const spill = document.getElementById('spill');
+  const street = document.getElementById('street');
+  const room = document.getElementById('room');
+  const cam = document.getElementById('room-cam');
+  const roomImg = document.getElementById('room-img');
+  const IW = 2400, IH = 1018;
+  // cover-fit the interior render to the viewport; k is the scale, ox/oy the offset of the render's top left corner
+  let k = 1, ox = 0, oy = 0;
+  function fitRoom() {
+    k = Math.max(innerWidth / IW, innerHeight / IH);
+    ox = (innerWidth - IW * k) / 2; oy = (innerHeight - IH * k) / 2;
+    gsap.set(roomImg, { scale: k, x: ox, y: oy });
+    // keep labels at a readable size regardless of how much the render is scaled
+    roomImg.style.setProperty('--ui', (1 / k).toFixed(3));
+  }
+  fitRoom();
+  addEventListener('resize', fitRoom);
+  const caption = document.getElementById('caption');
+  const skipBtn = document.getElementById('skip');
+  const replayBtn = document.getElementById('replay');
+
+  // door rectangle in plate pixels
+  const doorX = DL * PW, doorY = DT * PH, doorW = (DR - DL) * PW, doorH = (DB - DT) * PH;
+  const doorCX = doorX + doorW / 2, doorCY = doorY + doorH / 2;
+
+  // the far interior is sized so its height equals the door height; it then reads as the room seen through the opening
+  const INT_ASPECT = 2400 / 1018;
+  const farH = doorH, farW = farH * INT_ASPECT;
+  far.style.width = farW + 'px';
+  far.style.height = farH + 'px';
+  far.style.left = (doorCX - farW / 2) + 'px';
+  far.style.top = doorY + 'px';
+
+  // how far to push in so the far interior becomes the idle room view (plate width)
+  const PUSH = PW / farW;
+
+  // scale the scene to cover the viewport
+  let cover = 1;
+  function fit() {
+    cover = Math.max(innerWidth / PW, innerHeight / PH);
+    // origin stays on the door center for the whole shot; the offset keeps the plate centered before the push
+    gsap.set(scene, { scale: cover, transformOrigin: doorCX + 'px ' + doorCY + 'px',
+      x: (PW / 2 - doorCX) * (1 - cover), y: (PH / 2 - doorCY) * (1 - cover) });
+  }
+  fit();
+  addEventListener('resize', fit);
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const params = new URLSearchParams(location.search);
+  const skipParam = params.has('skip');
+  const renderMode = params.has('render');   // frame-by-frame capture: build the timeline paused and expose it
+
+  // ---------- room navigation ----------
+  const stations = {
+    shelves: { x: 0.175, y: 0.50, s: 1.9, title: 'Two doors. One shop.', text: 'Every card in the store, and every card in every other store on the platform, in one searchable inventory.' },
+    tv:      { x: 0.50, y: 0.48, s: 2.2, title: 'The AIssistants.', text: 'Product demo plays here. The screen is blank in the render on purpose.' },
+    phone:   { x: 0.77, y: 0.58, s: 2.4, title: 'All on your phone.', text: 'Collectors and sellers scan, price, list, and buy from the app.' },
+    counter: { x: 0.72, y: 0.70, s: 2.0, title: 'Live at the counter.', text: 'Scan a card, see the price, list it before the customer leaves.' },
+    vault:   { x: 0.90, y: 0.55, s: 2.1, title: 'Opening soon.', text: 'Trade shows. The door stays shut for now.' }
+  };
+
+  function showRoom() {
+    gsap.set(room, { visibility: 'visible', opacity: 1 });
+    gsap.set(scene, { visibility: 'hidden' });
+    gsap.to('.station', { opacity: 1, duration: .6, stagger: .08, delay: .2 });
+    gsap.to(replayBtn, { opacity: 1, duration: .4 });
+    skipBtn.style.display = 'none';
+  }
+
+  function goTo(name) {
+    const st = stations[name];
+    room.classList.add('focused');
+    // station anchor in viewport pixels; scale around it, then slide it toward the viewport center, clamped so the render's edges never show
+    const W = innerWidth, H = innerHeight, s = st.s;
+    const vx = ox + st.x * IW * k, vy = oy + st.y * IH * k;
+    const shift = (v, lo, hi, size) => {
+      const lo2 = v + (lo - v) * s, hi2 = v + (hi - v) * s;          // render extent after scaling about v
+      return Math.max(size - hi2, Math.min(-lo2, size / 2 - v));    // wanted: center the anchor; allowed: keep edges off screen
+    };
+    gsap.to(cam, {
+      scale: s, transformOrigin: vx + 'px ' + vy + 'px',
+      x: shift(vx, ox, ox + IW * k, W), y: shift(vy, oy, oy + IH * k, H),
+      duration: 1.1, ease: 'power3.inOut'
+    });
+    gsap.to('.station', { opacity: 0, duration: .3 });
+    caption.querySelector('h2').textContent = st.title;
+    caption.querySelector('p').textContent = st.text;
+    gsap.to(caption, { opacity: 1, y: 0, pointerEvents: 'auto', duration: .5, delay: .6 });
+  }
+
+  function goBack() {
+    room.classList.remove('focused');
+    gsap.to(cam, { scale: 1, x: 0, y: 0, duration: 1.0, ease: 'power3.inOut' });
+    gsap.to(caption, { opacity: 0, y: 12, pointerEvents: 'none', duration: .3 });
+    gsap.to('.station', { opacity: 1, duration: .5, delay: .5 });
+  }
+
+  document.querySelectorAll('.station').forEach(b => b.addEventListener('click', () => goTo(b.dataset.station)));
+  document.getElementById('back').addEventListener('click', goBack);
+
+  // ---------- door reveal ----------
+  let tl;
+  function playIntro() {
+    gsap.set(room, { visibility: 'hidden', opacity: 0 });
+    gsap.set(scene, { visibility: 'visible' });
+    gsap.set(door, { scaleY: 1, backgroundPositionY: 0 });
+    gsap.set(spill, { opacity: 0 });
+    gsap.set(clip, { clipPath: `inset(${DT * 100}% ${(1 - DR) * 100}% ${(1 - DB) * 100}% ${DL * 100}%)` });
+    gsap.set('.station', { opacity: 0 });
+    gsap.set(replayBtn, { opacity: 0 });
+    skipBtn.style.display = '';
+    fit();
+
+    if (renderMode) { skipBtn.style.display = 'none'; }
+    else if (reduced || skipParam) { showRoom(); return; }
+
+    gsap.set(street, { opacity: 1 });
+    tl = gsap.timeline({ onComplete: showRoom, paused: renderMode });
+    // beat 1: across the street. one slow dolly toward the door, the street frame dissolves into the door plate mid-push
+    const T_DOOR = 2.6;                                              // when the plate is fully in and the door starts
+    // start pulled back so the whole street frame fills the viewport, then dolly in until the plate fills it
+    const SX = -445, SY = -411, SW = 2400, SH = 1018;                // where the street frame sits in plate pixels (see #street)
+    const startScale = Math.max(innerWidth / SW, innerHeight / SH);
+    const sc = { x: SX + SW / 2, y: SY + SH / 2 };                   // street frame center
+    const place = (s, c) => ({ scale: s, x: PW / 2 - doorCX - (c.x - doorCX) * s, y: PH / 2 - doorCY - (c.y - doorCY) * s });
+    gsap.set(scene, place(startScale, sc));
+    const endScale = cover * 1.22;
+    tl.to({}, { duration: .5 });                                     // hold on the street
+    tl.to(scene, { ...place(endScale, { x: PW / 2, y: PH / 2 }), duration: T_DOOR, ease: 'power1.inOut' }, 0);
+    tl.to(street, { opacity: 0, duration: .8, ease: 'power1.inOut' }, T_DOOR - 1.0);
+    // beat 2: the roll-up door, same beats as 01 offset by T_DOOR
+    tl.to({}, { duration: .3 }, T_DOOR);                             // breathe on the closed door
+    tl.to(spill, { opacity: 1, duration: .5 }, T_DOOR + .3);
+    tl.to(door, { scaleY: 0, duration: 1.8, ease: 'power2.inOut' }, T_DOOR + .4);
+    tl.to(door, { backgroundPositionY: -240, duration: 1.8, ease: 'power2.inOut' }, T_DOOR + .4);
+    tl.to(scene, {
+      scale: cover * PUSH,
+      x: PW / 2 - doorCX,
+      y: PH / 2 - doorCY,
+      duration: 1.7, ease: 'power2.inOut'
+    }, T_DOOR + 1.3);
+    tl.to(clip, { clipPath: 'inset(0% 0% 0% 0%)', duration: .7, ease: 'power2.in' }, T_DOOR + 2.3);
+    tl.to(spill, { opacity: 0, duration: .4 }, T_DOOR + 2.3);
+    window.__tl = tl;
+  }
+
+  skipBtn.addEventListener('click', () => { if (tl) tl.progress(1); else showRoom(); });
+  replayBtn.addEventListener('click', () => { goBack(); playIntro(); });
+
+  playIntro();
+})();
+</script>
+</body>
+</html>
