@@ -31,6 +31,7 @@
   #scene > * { position:absolute; }
   #exterior { inset:0; width:100%; height:100%; object-fit:fill; display:block; }
   /* the street frame sits above the plate, registered on the door, and dissolves away during the push */
+  #man { inset:0; width:100%; height:100%; display:block; z-index:1; pointer-events:none; }
   #street { width:2400px; height:1018px; left:-445px; top:-411px; display:block; z-index:2; }
 
   /* interior sits behind the door, clipped to the opening */
@@ -99,10 +100,12 @@
 <body>
 <div id="stage">
   <div id="scene">
-    <img id="exterior" src="../assets/img/exterior-door-closed.jpg" alt="">
+    <img id="exterior" src="../assets/img/exterior-door-closed-clean.jpg" alt="">
     <div id="interior-clip"><img id="interior-far" src="../assets/img/interior-wide.jpg" alt=""></div>
     <div id="spill"></div>
     <div id="door"></div>
+    <!-- the man with the box, cut out of the plate so he stays in front of the opening door. same pixel grid as the plate -->
+    <img id="man" src="../assets/img/exterior-man.png" alt="">
     <img id="street" src="../assets/source/walk-in/hero-street-2400.webp" alt="">
   </div>
 
@@ -133,6 +136,7 @@
 
   const stage = document.getElementById('stage');
   const scene = document.getElementById('scene');
+  const man = document.getElementById('man');
   const clip = document.getElementById('interior-clip');
   const far = document.getElementById('interior-far');
   const door = document.getElementById('door');
@@ -243,6 +247,7 @@
     gsap.set(scene, { visibility: 'visible' });
     gsap.set(door, { scaleY: 1, backgroundPositionY: 0 });
     gsap.set(spill, { opacity: 0 });
+    gsap.set(man, { opacity: 1 });
     gsap.set(clip, { clipPath: `inset(${DT * 100}% ${(1 - DR) * 100}% ${(1 - DB) * 100}% ${DL * 100}%)` });
     gsap.set('.station', { opacity: 0 });
     gsap.set(replayBtn, { opacity: 0 });
@@ -279,6 +284,7 @@
     }, T_DOOR + 1.3);
     tl.to(clip, { clipPath: 'inset(0% 0% 0% 0%)', duration: .7, ease: 'power2.in' }, T_DOOR + 2.3);
     tl.to(spill, { opacity: 0, duration: .4 }, T_DOOR + 2.3);
+    tl.to(man, { opacity: 0, duration: .5, ease: 'power2.in' }, T_DOOR + 2.3);   // he fades as the interior takes the frame
     window.__tl = tl;
   }
 
