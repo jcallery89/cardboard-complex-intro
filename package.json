@@ -1,0 +1,24 @@
+{
+  "name": "cardboard-complex-intro",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Landing page opener and room navigation for Cardboard Complex. Plain HTML intros driven by GSAP, plus a headless render pipeline for video.",
+  "scripts": {
+    "serve": "npx serve .",
+    "serve:py": "python -m http.server 8765",
+    "render": "node scripts/render-video.js intros/02-walk-in-reveal.html 30",
+    "wordmarks": "python3 scripts/make-wordmark.py node_modules/@fontsource assets/logo"
+  },
+  "devDependencies": {
+    "@fontsource/alfa-slab-one": "^5.2.5",
+    "@fontsource/barlow-condensed": "^5.2.5",
+    "@fontsource/bricolage-grotesque": "^5.2.5",
+    "@fontsource/dm-sans": "^5.2.5",
+    "@fontsource/fraunces": "^5.2.5",
+    "@fontsource/lora": "^5.2.5",
+    "@fontsource/oswald": "^5.2.5",
+    "@fontsource/source-serif-4": "^5.2.5",
+    "gsap": "^3.12.5",
+    "playwright": "^1.47.0"
+  }
+}
